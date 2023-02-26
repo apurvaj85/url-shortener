@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>URL Shortener</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .form label {
+        font-weight: bold;
+      }
+
+      .form input {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+
+      .form button {
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .form button:hover {
+        background-color: #0069d9;
+      }
+
+      .message {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 4px;
+      }
+
+      .error {
+        background-color: #dc3545;
+        color: #fff;
+      }
+
+      .success {
+        background-color: #4ca661;
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>URL Shortener</h1>
+      <form class="form">
+        <label for="original_url">Enter the original URL:</label>
+        <input type="url" id="original_url" name="original_url" required />
+
+        <label for="custom_alias">Custom alias (optional):</label>
+        <input type="text" id="custom_alias" name="custom_alias" />
+
+        <label for="expires_at">Expires at (optional):</label>
+        <input type="datetime-local" id="expires_at" name="expires_at" />
+
+        <button type="submit">Shorten URL</button>
+      </form>
+      <br />
+      <br />
+      <div id="short-url"></div>
+    </div>
+
+    <script>
+      const form = document.querySelector(".form");
+      const shortUrlDiv = document.getElementById("short-url");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch("/shorten_url", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+          if (response.ok) {
+            shortUrlDiv.innerHTML = `Short URL: <a href="${data.short_url}" target="_blank">${data.short_url}</a>, Original URL: <a href="${data.original_url}" target="_blank">${data.original_url}</a>`;
+            shortUrlDiv.classList.add("success");
+            shortUrlDiv.classList.remove("error");
+          } else {
+            shortUrlDiv.innerHTML = `Error: ${data.error}`;
+            shortUrlDiv.classList.add("error");
+            shortUrlDiv.classList.remove("success");
+          }
+        } catch (error) {
+          shortUrlDiv.innerHTML = `Error: ${error}`;
+          shortUrlDiv.classList.add("error");
+          shortUrlDiv.classList.remove("success");
+        }
+      });
+    </script>
+  </body>
+</html>
