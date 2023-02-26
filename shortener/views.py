@@ -31,6 +31,21 @@ def generate_random_specific_length_string(length=10):
     return "".join(random.choice(chars) for _ in range(length))
 
 
+def validate_alias(alias):
+    """Validates if the alias can be a short url"""
+    # If the length of the alias exceeds the maximum length of the short url
+    if len(alias) > 15:
+        return False
+    alphanums = string.ascii_lowercase + string.digits
+    # If alias contains any non chars other than above alphanums
+    try:
+        if any(c not in alphanums for c in alias):
+            return False
+    except Exception as e:
+        return False
+    return True
+
+
 # ShortenURLAPIView to generate a short URL for the specified original URL
 class ShortenURLAPIView(APIView):
     """
@@ -67,11 +82,17 @@ class ShortenURLAPIView(APIView):
     # POST method to shorten the provided URL
     def post(self, request):
         # Check if custom alias is provided
-        custom_alias = request.data.get("custom_alias", None)
+        custom_alias = request.data.get("custom_alias")
         if not custom_alias:
             custom_alias = None
 
         if custom_alias is not None:
+            # Validating the alias
+            if not validate_alias(custom_alias):
+                return Response(
+                    data={"error": "Custom alias is not valid."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             # Check if the custom alias already exists in the database
             if Url.objects.filter(short_url=custom_alias).exists():
                 return Response(
